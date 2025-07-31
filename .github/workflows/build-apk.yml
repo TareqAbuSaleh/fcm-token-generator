@@ -19,7 +19,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: Setup Java JDK
@@ -30,7 +30,7 @@ jobs:
         
     - name: Install global dependencies
       run: |
-        npm install -g @ionic/cli @capacitor/core @capacitor/cli
+        npm install -g @ionic/cli@latest @capacitor/core @capacitor/cli
         
     - name: Install project dependencies
       run: npm install
