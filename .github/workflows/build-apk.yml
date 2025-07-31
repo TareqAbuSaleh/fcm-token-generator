@@ -3,92 +3,80 @@ name: Build FCM Token APK
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build Android APK
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout source code
+    - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Setup Node.js
+    - name: Setup Node.js 20
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
         
-    - name: Setup Java JDK
+    - name: Setup JDK 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
         
-    - name: Install global dependencies
-      run: |
-        npm install -g @ionic/cli@latest @capacitor/core @capacitor/cli
+    - name: Cache Gradle
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         
-    - name: Install project dependencies
-      run: npm install
-      
-    - name: Build Ionic app
+    - name: Install dependencies
       run: |
-        ionic build --prod
+        npm ci
+        npm install -g @ionic/cli@latest
         
-    - name: Sync Capacitor
-      run: ionic capacitor sync android
+    - name: Build web app
+      run: ionic build --prod
       
-    - name: Build Android APK
+    - name: Capacitor sync
+      run: npx cap sync android
+      
+    - name: Grant execute permission for gradlew
+      run: chmod +x android/gradlew
+      
+    - name: Clean and build APK
       working-directory: ./android
       run: |
-        chmod +x ./gradlew
-        ./gradlew assembleDebug --stacktrace
+        ./gradlew clean
+        ./gradlew assembleDebug --no-daemon --stacktrace
         
-    - name: Upload APK artifact
+    - name: Find APK
+      run: find . -name "*.apk" -type f
+      
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: fcm-token-app-debug
-        path: android/app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 30
+        name: fcm-token-app
+        path: android/app/build/outputs/apk/debug/*.apk
+        retention-days: 7
         
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: success()
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: v1.0-${{ github.run_number }}
-        release_name: FCM Token App v1.0-${{ github.run_number }}
+        tag_name: v1.0.${{ github.run_number }}
+        name: FCM Token App v1.0.${{ github.run_number }}
         body: |
-          🔔 تطبيق الحصول على FCM Device Token
+          🔔 تطبيق للحصول على FCM Device Token
           
-          📱 **الملفات:**
-          - app-debug.apk - ملف التطبيق للتثبيت المباشر
-          
-          📋 **الاستخدام:**
-          1. حمل ملف APK
-          2. ثبته على جهاز Android
-          3. افتح التطبيق
-          4. انسخ Device Token الذي يظهر
-          
-          🚀 **المميزات:**
-          - حصول فوري على Device Token
-          - نسخ Token بضغطة واحدة
-          - واجهة عربية سهلة
-          - دعم الإشعارات المباشرة
+          📱 حمل ملف APK وثبته على جهاز Android
+          🔑 احصل على Device Token فوراً
+          📋 انسخ Token واستخدمه في اختبار الإشعارات
+        files: android/app/build/outputs/apk/debug/*.apk
         draft: false
         prerelease: false
-        
-    - name: Upload APK to Release
-      uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: android/app/build/outputs/apk/debug/app-debug.apk
-        asset_name: fcm-token-app-debug.apk
-        asset_content_type: application/vnd.android.package-archive
