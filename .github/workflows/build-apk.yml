@@ -2,9 +2,9 @@ name: Build FCM Token APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
@@ -70,7 +70,7 @@ jobs:
           🔔 تطبيق الحصول على FCM Device Token
           
           📱 **الملفات:**
-          - `app-debug.apk` - ملف التطبيق للتثبيت المباشر
+          - app-debug.apk - ملف التطبيق للتثبيت المباشر
           
           📋 **الاستخدام:**
           1. حمل ملف APK
