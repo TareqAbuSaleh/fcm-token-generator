@@ -5,6 +5,10 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,14 +28,6 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '21'
-        
-    - name: Cache Gradle
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         
     - name: Install dependencies
       run: |
@@ -53,35 +49,9 @@ jobs:
         ./gradlew clean
         ./gradlew assembleDebug --no-daemon --stacktrace
         
-    - name: Find APK
-      run: find . -name "*.apk" -type f
-      
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: fcm-token-app
-        path: android/app/build/outputs/apk/debug/*.apk
-        retention-days: 7
-        
-    - name: Create Release
-      if: success()
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v1.0.${{ github.run_number }}
-        name: FCM Token App v1.0.${{ github.run_number }}
-        body: |
-          🔔 تطبيق للحصول على FCM Device Token
-          
-          📱 حمل ملف APK وثبته على جهاز Android
-          🔑 احصل على Device Token فوراً
-          📋 انسخ Token واستخدمه في اختبار الإشعارات
-          
-          ## التثبيت:
-          1. حمل ملف app-debug.apk
-          2. ثبته على جهاز Android
-          3. افتح التطبيق واحصل على Token
-        files: android/app/build/outputs/apk/debug/*.apk
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: fcm-token-app-debug
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
