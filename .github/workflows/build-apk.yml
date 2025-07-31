@@ -39,9 +39,6 @@ jobs:
       run: |
         ionic build --prod
         
-    - name: Add Android platform
-      run: ionic capacitor add android
-      
     - name: Sync Capacitor
       run: ionic capacitor sync android
       
