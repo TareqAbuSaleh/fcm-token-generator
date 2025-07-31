@@ -1,0 +1,7 @@
+{
+  "name": "fcm-token-generator",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

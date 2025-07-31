@@ -1,0 +1,97 @@
+name: Build FCM Token APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Install global dependencies
+      run: |
+        npm install -g @ionic/cli @capacitor/core @capacitor/cli
+        
+    - name: Install project dependencies
+      run: npm install
+      
+    - name: Build Ionic app
+      run: |
+        ionic build --prod
+        
+    - name: Add Android platform
+      run: ionic capacitor add android
+      
+    - name: Sync Capacitor
+      run: ionic capacitor sync android
+      
+    - name: Build Android APK
+      working-directory: ./android
+      run: |
+        chmod +x ./gradlew
+        ./gradlew assembleDebug --stacktrace
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fcm-token-app-debug
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+        
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.0-${{ github.run_number }}
+        release_name: FCM Token App v1.0-${{ github.run_number }}
+        body: |
+          🔔 تطبيق الحصول على FCM Device Token
+          
+          📱 **الملفات:**
+          - `app-debug.apk` - ملف التطبيق للتثبيت المباشر
+          
+          📋 **الاستخدام:**
+          1. حمل ملف APK
+          2. ثبته على جهاز Android
+          3. افتح التطبيق
+          4. انسخ Device Token الذي يظهر
+          
+          🚀 **المميزات:**
+          - حصول فوري على Device Token
+          - نسخ Token بضغطة واحدة
+          - واجهة عربية سهلة
+          - دعم الإشعارات المباشرة
+        draft: false
+        prerelease: false
+        
+    - name: Upload APK to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: android/app/build/outputs/apk/debug/app-debug.apk
+        asset_name: fcm-token-app-debug.apk
+        asset_content_type: application/vnd.android.package-archive
