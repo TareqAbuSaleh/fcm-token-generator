@@ -1,20 +1,111 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-title>
-      Blank
+      🔔 FCM Token Generator
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+  
+  <div class="container">
+    
+    <!-- Header Card -->
+    <ion-card class="welcome-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="notifications-outline"></ion-icon>
+          مولد رمز Firebase
+        </ion-card-title>
+        <ion-card-subtitle>
+          احصل على Device Token الخاص بجهازك
+        </ion-card-subtitle>
+      </ion-card-header>
+    </ion-card>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    <!-- Token Card -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="key-outline"></ion-icon>
+          Device Token
+        </ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        
+        <!-- Loading State -->
+        <div *ngIf="!isTokenLoaded && !errorMessage" class="loading-container">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <p class="loading-text">🔄 جاري الحصول على Device Token...</p>
+          <p class="loading-subtext">قد يستغرق هذا بضع ثوانٍ</p>
+        </div>
+        
+        <!-- Error State -->
+        <div *ngIf="errorMessage" class="error-container">
+          <ion-icon name="alert-circle-outline" color="danger" size="large"></ion-icon>
+          <p class="error-text">{{ errorMessage }}</p>
+        </div>
+        
+        <!-- Success State -->
+        <div *ngIf="isTokenLoaded" class="success-container">
+          <div class="token-display">
+            <ion-item lines="none" class="token-item">
+              <ion-icon name="checkmark-circle" color="success" slot="start"></ion-icon>
+              <ion-label class="ion-text-wrap">
+                <h3>✅ تم الحصول على Token بنجاح!</h3>
+                <div class="token-text">{{ deviceToken }}</div>
+              </ion-label>
+            </ion-item>
+          </div>
+          
+          <div class="button-container">
+            <ion-button expand="block" fill="solid" color="primary" (click)="copyToken()">
+              <ion-icon name="copy-outline" slot="start"></ion-icon>
+              📋 نسخ Token
+            </ion-button>
+            
+            <ion-button expand="block" fill="outline" color="secondary" (click)="showTokenAlert()">
+              <ion-icon name="eye-outline" slot="start"></ion-icon>
+              👁 عرض في نافذة منبثقة
+            </ion-button>
+            
+            <ion-button expand="block" fill="outline" color="medium" (click)="shareToken()">
+              <ion-icon name="share-outline" slot="start"></ion-icon>
+              📤 مشاركة Token
+            </ion-button>
+          </div>
+        </div>
+        
+        <!-- Refresh Button -->
+        <div class="refresh-container">
+          <ion-button expand="block" fill="clear" color="medium" (click)="refreshToken()">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            🔄 تحديث Token
+          </ion-button>
+        </div>
+        
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Instructions Card -->
+    <ion-card class="instructions-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="information-circle-outline"></ion-icon>
+          كيفية الاستخدام
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ol>
+          <li>سيظهر Token تلقائياً عند فتح التطبيق</li>
+          <li>اضغط "نسخ Token" لنسخه إلى الحافظة</li>
+          <li>استخدم Token في اختبار الإشعارات</li>
+          <li>يمكنك مشاركة Token أو إعادة تحديثه</li>
+        </ol>
+      </ion-card-content>
+    </ion-card>
+    
   </div>
+  
 </ion-content>
